@@ -1,6 +1,11 @@
 version: '3.8'
 
 services:
+  nats:
+    image: nats:latest
+    container_name: pmts-nats
+    ports:
+      - "4222:4222"
   db:
     image: postgres:15-alpine
     container_name: pmts-db
@@ -25,25 +30,29 @@ services:
       - "50051:50051"
     environment:
       - DB_CONN=postgres://admin:secret@db:5432/pmts
+      - NATS_ADDR=nats://nats:4222
     depends_on:
       db:
         condition: service_healthy
+      nats:
+        condition: service_started
 
   scraper-service:
     build: .
     command: /app/scraper
     environment:
-      - STORAGE_ADDR=storage-service:50051
+      - NATS_ADDR=nats://nats:4222
+      - InDocker=true
     depends_on:
-      - storage-service
+      - nats
 
   alert-service:
     build: .
     command: /app/alert
     environment:
-      - STORAGE_ADDR=storage-service:50051
+      - NATS_ADDR=nats://nats:4222
     depends_on:
-      - storage-service
+      - nats
   
   api-gateway:
     build: .

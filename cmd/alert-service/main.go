@@ -1,82 +1,73 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"os"
 	"os/signal"
 	"syscall"
-	"time"
 
 	pb "pmts/proto"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/nats-io/nats.go"
+	"google.golang.org/protobuf/proto"
 )
 
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
-	addr := os.Getenv("STORAGE_ADDR")
-	if addr == "" {
-		addr = "localhost:5050"
+	natsAddr := os.Getenv("NATS_ADDR")
+	if natsAddr == "" {
+		natsAddr = "nats://localhost:4222"
 	}
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	nc, err := nats.Connect(natsAddr)
 	if err != nil {
-		logger.Error("Failed to connect to storage", "error", err)
+		logger.Error("Failed to connect to NATS", "error", err)
+		os.Exit(1)
 	}
 
-	defer conn.Close()
+	defer nc.Close()
 
-	client := pb.NewMonitoringServiceClient(conn)
+	logger.Info("Alert service listening on NATS", "subject", "metrics.upload")
 
-	logger.Info("Starting alert service")
+	_, err = nc.QueueSubscribe("metrics.upload", "alert-workers", func(m *nats.Msg) {
+		req := &pb.UploadRequest{}
+		if err := proto.Unmarshal(m.Data, req); err != nil {
+			logger.Error("Bad message", "error", err)
+			return
+		}
+		checkRules(req.List, logger)
+	})
 
-	ticker := time.NewTicker(5 * time.Second)
-	defer ticker.Stop()
+	if err != nil {
+		logger.Error("Failed to subscribe", "error", err)
+		os.Exit(1)
+	}
 
 	quit := make(chan os.Signal, 1)
 	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
-	for {
-		select {
-		case <-quit:
-			logger.Info("Stopping alert service")
-			return
-		case <-ticker.C:
-			checkAlerts(client, logger)
-		}
-	}
+	<-quit
+	logger.Info("Shutting down...")
 }
 
-func checkAlerts(client pb.MonitoringServiceClient, logger *slog.Logger) {
+func checkRules(list []*pb.TimeSeries, logger *slog.Logger) {
 	targetMetric := "cpu_usage_demo"
 	treshold := 50.0
 
-	ctx, cancel := context.WithTimeout(context.Background(), 2*time.Second)
-	defer cancel()
-
-	req := &pb.GetMetricsRequest{MatchName: targetMetric}
-	resp, err := client.GetMetrics(ctx, req)
-
-	if err != nil {
-		logger.Error("Failed to fetch metrics", "error", err)
-		return
-	}
-
-	for _, series := range resp.List {
-		if len(series.Samples) == 0 {
+	for _, series := range list {
+		if series.Metric.Name != targetMetric {
 			continue
 		}
-		lastSample := series.Samples[len(series.Samples)-1]
-		if lastSample.Value > treshold {
-			logger.Warn(
-				"ALERT FIRED",
-				"metric", targetMetric,
-				"value", lastSample.Value,
-				"treshold", treshold,
-			)
-		} else {
-			logger.Info("Status OK", "value", lastSample.Value)
+		for _, sample := range series.Samples {
+			if sample.Value > treshold {
+				logger.Warn(
+					"ALERT FIRED",
+					"metric", targetMetric,
+					"value", sample.Value,
+					"treshold", treshold,
+				)
+			} else {
+				logger.Info("Status OK", "value", sample.Value)
+			}
 		}
 	}
 }

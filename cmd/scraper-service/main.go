@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log/slog"
 	"net/http"
 	"os"
@@ -11,8 +10,8 @@ import (
 
 	pb "pmts/proto"
 
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
+	"github.com/nats-io/nats.go"
+	"google.golang.org/protobuf/proto"
 )
 
 type ScraperConfig struct {
@@ -23,24 +22,23 @@ type ScraperConfig struct {
 func main() {
 	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
 	slog.SetDefault(logger)
-	addr := os.Getenv("STORAGE_ADDR")
-	if addr == "" {
-		addr = "localhost:5050"
+	natsAddr := os.Getenv("NATS_ADDR")
+	if natsAddr == "" {
+		natsAddr = "nats://localhost:4222"
 	}
-	conn, err := grpc.NewClient(addr, grpc.WithTransportCredentials(insecure.NewCredentials()))
+	logger.Info("Connecting to NATS", "addr", natsAddr)
+
+	nc, err := nats.Connect(natsAddr)
 	if err != nil {
-		logger.Error("Failed to connect", "error", err)
+		logger.Error("Failed to connect NATS", "error", err)
 		os.Exit(1)
 	}
-	defer conn.Close()
-	client := pb.NewMonitoringServiceClient(conn)
+	defer nc.Close()
 
 	cfg := ScraperConfig{
 		Name:     "microservice-scraper",
 		Interval: 5 * time.Second,
 	}
-
-	logger.Info("Starting scraper service", "target", "localhost:50051")
 
 	ticker := time.NewTicker(cfg.Interval)
 	defer ticker.Stop()
@@ -54,17 +52,21 @@ func main() {
 			logger.Info("Stopping scraper")
 			return
 		case <-ticker.C:
-			scrapeAndSend(client, cfg, logger)
+			scrapeAndPublish(nc, cfg, logger)
 		}
 
 	}
 
 }
 
-func scrapeAndSend(client pb.MonitoringServiceClient, cfg ScraperConfig, logger *slog.Logger) {
+func scrapeAndPublish(nc *nats.Conn, cfg ScraperConfig, logger *slog.Logger) {
 	// val := rand.Float64() * 100
 	// logger.Info("Scrapped data", "value", val)
 	targetURL := "http://api-gateway:8080/metrics/demo"
+	if os.Getenv("InDocker") != "true" {
+		targetURL = "http://localhost:8080/metrics/demo"
+	}
+
 	resp, err := http.Get(targetURL)
 	if err != nil {
 		logger.Error("Failed to scrape", "error", err)
@@ -81,13 +83,16 @@ func scrapeAndSend(client pb.MonitoringServiceClient, cfg ScraperConfig, logger 
 	req := &pb.UploadRequest{
 		List: data,
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), time.Second)
-	defer cancel()
 
-	rpcResp, err := client.UploadSamples(ctx, req)
+	bytes, err := proto.Marshal(req)
 	if err != nil {
-		logger.Error("Failed to upload metrics", "error", err)
+		logger.Info("Failed to marshal protobufs", "error", err)
 		return
 	}
-	logger.Info("Scrape success", "stored_count", rpcResp.StoredCount)
+
+	if err := nc.Publish("metrics.upload", bytes); err != nil {
+		logger.Error("Failed to publish to NATS", "error", err)
+		return
+	}
+	logger.Info("Published metrics to NATS", "bytes", len(bytes))
 }

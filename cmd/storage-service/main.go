@@ -7,10 +7,14 @@ import (
 	"net"
 	"os"
 	pb "pmts/proto"
+	"syscall"
+
+	"os/signal"
 
 	_ "github.com/jackc/pgx/v5/stdlib"
-
+	"github.com/nats-io/nats.go"
 	"google.golang.org/grpc"
+	"google.golang.org/protobuf/proto"
 )
 
 type Server struct {
@@ -41,41 +45,43 @@ func initDB(db *sql.DB) error {
 	return err
 }
 
-func (s *Server) UploadSamples(ctx context.Context, req *pb.UploadRequest) (*pb.UploadResponse, error) {
-	// s.mu.Lock()
-	// defer s.mu.Unlock()
-
+func (s *Server) persistBatch(ctx context.Context, list []*pb.TimeSeries) (int, error) {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	defer tx.Rollback()
-
-	count := 0
-
 	stmt, err := tx.PrepareContext(ctx, "INSERT INTO samples (metric_name, timestamp, value) VALUES ($1, $2, $3)")
 	if err != nil {
-		return nil, err
+		return 0, err
 	}
 	defer stmt.Close()
 
-	for _, series := range req.List {
+	count := 0
+	for _, series := range list {
 		name := series.Metric.Name
 
 		for _, sample := range series.Samples {
 			_, err := stmt.ExecContext(ctx, name, sample.Timestamp, sample.Value)
 			if err != nil {
-				return nil, err
+				return 0, err
 			}
 			count++
 		}
 	}
-
 	if err := tx.Commit(); err != nil {
+		return 0, err
+	}
+	return count, nil
+}
+
+func (s *Server) UploadSamples(ctx context.Context, req *pb.UploadRequest) (*pb.UploadResponse, error) {
+	// s.mu.Lock()
+	// defer s.mu.Unlock()
+	count, err := s.persistBatch(ctx, req.List)
+	if err != nil {
 		return nil, err
 	}
-
-	slog.Info("Persisted samples", "count", count)
 
 	return &pb.UploadResponse{
 		StoredCount: int32(count),
@@ -140,34 +146,67 @@ func main() {
 	}
 	db, err := sql.Open("pgx", connStr)
 	if err != nil {
-		logger.Error("Failed to open DB", "error", err)
+		panic(err)
 	}
-	defer db.Close()
-
-	if err := db.Ping(); err != nil {
-		logger.Error("Failed to connect to DB", "error", err)
-		os.Exit(1)
-	}
-	logger.Info("Connected to PostgreSQL")
-
 	if err := initDB(db); err != nil {
-		logger.Error("Failed to migrate DB", "error", err)
+		panic(err)
+	}
+
+	srv := NewServer(db)
+
+	natsAddr := os.Getenv("NATS_ADDR")
+	if natsAddr == "" {
+		natsAddr = "nats://localhost:4222"
+	}
+
+	nc, err := nats.Connect(natsAddr)
+	if err != nil {
+		logger.Error("Failed to connect to NATS", "error", err)
 		os.Exit(1)
 	}
+	defer nc.Close()
+
+	_, err = nc.QueueSubscribe("metrics.upload", "storage-workers", func(m *nats.Msg) {
+		req := &pb.UploadRequest{}
+		if err := proto.Unmarshal(m.Data, req); err != nil {
+			logger.Error("Bad NATS message", "error", err)
+			return
+		}
+
+		count, err := srv.persistBatch(context.Background(), req.List)
+		if err != nil {
+			logger.Error("Failed to save from NATS", "error", err)
+			return
+		}
+
+		logger.Info("Saved NATS batch", "count", count)
+	})
+
+	if err != nil {
+		panic(err)
+	}
+	logger.Info("Listening on NATS subject: metrics.upload")
 
 	lis, err := net.Listen("tcp", ":50051")
 	if err != nil {
-		logger.Error("Failed to listen", "error", err)
+		logger.Error("Failed to listen gRPC", "error", err)
 		os.Exit(1)
 	}
 
 	grpcServer := grpc.NewServer()
 
-	pb.RegisterMonitoringServiceServer(grpcServer, NewServer(db))
+	pb.RegisterMonitoringServiceServer(grpcServer, srv)
 
-	logger.Info("Storage service SQL started on :50051")
+	logger.Info("Storage service with NATS started")
 
-	if err := grpcServer.Serve(lis); err != nil {
-		logger.Error("Failed to serve", "error", err)
-	}
+	go func() {
+		if err := grpcServer.Serve(lis); err != nil {
+			logger.Error("Failed to serve", "error", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, os.Interrupt, syscall.SIGTERM)
+	<-quit
+	logger.Info("Shutting down...")
 }
