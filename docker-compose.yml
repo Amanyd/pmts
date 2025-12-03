@@ -61,8 +61,10 @@ services:
       - "8080:8080"
     environment:
       - STORAGE_ADDR=storage-service:50051
+      - NATS_ADDR=nats://nats:4222
     depends_on:
       - storage-service
+      - nats
 
 volumes:
   postgres_data:
