@@ -1,0 +1,11 @@
+# Ignore Git files
+.git/
+
+# Ignore Frontend Dependencies (The heavy stuff)
+web/node_modules/
+web/.svelte-kit/
+web/build/
+
+# Ignore Backend Binaries (If you built locally)
+bin/
+postgres_data/
