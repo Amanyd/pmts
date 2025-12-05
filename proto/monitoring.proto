@@ -5,6 +5,10 @@ package monitoring;
 service MonitoringService {
     rpc UploadSamples (UploadRequest) returns (UploadResponse);
     rpc GetMetrics (GetMetricsRequest) returns (GetMetricsResponse);
+    rpc VerifyKey (VerifyKeyRequest) returns (VerifyKeyResponse);
+    rpc CreateUser (CreateUserRequest) returns (CreateUserResponse);
+    rpc CreateAlertRule (CreateRuleRequest) returns (CreateRuleResponse);
+    rpc GetAlertRules (GetRulesRequest) returns (GetRulesResponse);
 }
 
 
@@ -25,6 +29,7 @@ message TimeSeries{
 
 message UploadRequest{
     repeated TimeSeries list = 1;
+    int64 user_id   = 2;
 }
 
 message UploadResponse{
@@ -34,8 +39,52 @@ message UploadResponse{
 
 message GetMetricsRequest{
     string match_name = 1;
+    int64 user_id = 2;
 }
 
 message GetMetricsResponse{
     repeated TimeSeries list = 1;
+}
+
+message VerifyKeyRequest {
+    string api_key = 1;
+}
+
+message VerifyKeyResponse {
+    bool valid = 1;
+    int64 user_id = 2;
+}
+
+message CreateUserRequest {
+  string email = 1;
+}
+
+message CreateUserResponse {
+  int64 user_id = 1;
+  string api_key = 2;
+  string error = 3;
+}
+
+message AlertRule {
+  string metric_name = 1;
+  double threshold = 2;
+  int64 user_id = 3;
+}
+
+message CreateRuleRequest {
+  int64 user_id = 1;
+  string metric_name = 2;
+  double threshold = 3;
+}
+
+message CreateRuleResponse {
+  int64 rule_id = 1;
+}
+
+message GetRulesRequest {
+  int64 user_id = 1; 
+}
+
+message GetRulesResponse {
+  repeated AlertRule rules = 1;
 }

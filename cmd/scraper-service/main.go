@@ -81,7 +81,8 @@ func scrapeAndPublish(nc *nats.Conn, cfg ScraperConfig, logger *slog.Logger) {
 	}
 
 	req := &pb.UploadRequest{
-		List: data,
+		List:   data,
+		UserId: 1,
 	}
 
 	bytes, err := proto.Marshal(req)

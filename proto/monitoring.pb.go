@@ -180,6 +180,7 @@ func (x *TimeSeries) GetSamples() []*Sample {
 type UploadRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	List          []*TimeSeries          `protobuf:"bytes,1,rep,name=list,proto3" json:"list,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -219,6 +220,13 @@ func (x *UploadRequest) GetList() []*TimeSeries {
 		return x.List
 	}
 	return nil
+}
+
+func (x *UploadRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type UploadResponse struct {
@@ -276,6 +284,7 @@ func (x *UploadResponse) GetError() string {
 type GetMetricsRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	MatchName     string                 `protobuf:"bytes,1,opt,name=match_name,json=matchName,proto3" json:"match_name,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -315,6 +324,13 @@ func (x *GetMetricsRequest) GetMatchName() string {
 		return x.MatchName
 	}
 	return ""
+}
+
+func (x *GetMetricsRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
 }
 
 type GetMetricsResponse struct {
@@ -361,6 +377,458 @@ func (x *GetMetricsResponse) GetList() []*TimeSeries {
 	return nil
 }
 
+type VerifyKeyRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	ApiKey        string                 `protobuf:"bytes,1,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerifyKeyRequest) Reset() {
+	*x = VerifyKeyRequest{}
+	mi := &file_proto_monitoring_proto_msgTypes[7]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyKeyRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyKeyRequest) ProtoMessage() {}
+
+func (x *VerifyKeyRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[7]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyKeyRequest.ProtoReflect.Descriptor instead.
+func (*VerifyKeyRequest) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{7}
+}
+
+func (x *VerifyKeyRequest) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+type VerifyKeyResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Valid         bool                   `protobuf:"varint,1,opt,name=valid,proto3" json:"valid,omitempty"`
+	UserId        int64                  `protobuf:"varint,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *VerifyKeyResponse) Reset() {
+	*x = VerifyKeyResponse{}
+	mi := &file_proto_monitoring_proto_msgTypes[8]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *VerifyKeyResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*VerifyKeyResponse) ProtoMessage() {}
+
+func (x *VerifyKeyResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[8]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use VerifyKeyResponse.ProtoReflect.Descriptor instead.
+func (*VerifyKeyResponse) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *VerifyKeyResponse) GetValid() bool {
+	if x != nil {
+		return x.Valid
+	}
+	return false
+}
+
+func (x *VerifyKeyResponse) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type CreateUserRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Email         string                 `protobuf:"bytes,1,opt,name=email,proto3" json:"email,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateUserRequest) Reset() {
+	*x = CreateUserRequest{}
+	mi := &file_proto_monitoring_proto_msgTypes[9]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserRequest) ProtoMessage() {}
+
+func (x *CreateUserRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[9]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserRequest.ProtoReflect.Descriptor instead.
+func (*CreateUserRequest) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *CreateUserRequest) GetEmail() string {
+	if x != nil {
+		return x.Email
+	}
+	return ""
+}
+
+type CreateUserResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	ApiKey        string                 `protobuf:"bytes,2,opt,name=api_key,json=apiKey,proto3" json:"api_key,omitempty"`
+	Error         string                 `protobuf:"bytes,3,opt,name=error,proto3" json:"error,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateUserResponse) Reset() {
+	*x = CreateUserResponse{}
+	mi := &file_proto_monitoring_proto_msgTypes[10]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateUserResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateUserResponse) ProtoMessage() {}
+
+func (x *CreateUserResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[10]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateUserResponse.ProtoReflect.Descriptor instead.
+func (*CreateUserResponse) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *CreateUserResponse) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CreateUserResponse) GetApiKey() string {
+	if x != nil {
+		return x.ApiKey
+	}
+	return ""
+}
+
+func (x *CreateUserResponse) GetError() string {
+	if x != nil {
+		return x.Error
+	}
+	return ""
+}
+
+type AlertRule struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	MetricName    string                 `protobuf:"bytes,1,opt,name=metric_name,json=metricName,proto3" json:"metric_name,omitempty"`
+	Threshold     float64                `protobuf:"fixed64,2,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	UserId        int64                  `protobuf:"varint,3,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AlertRule) Reset() {
+	*x = AlertRule{}
+	mi := &file_proto_monitoring_proto_msgTypes[11]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AlertRule) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AlertRule) ProtoMessage() {}
+
+func (x *AlertRule) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[11]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AlertRule.ProtoReflect.Descriptor instead.
+func (*AlertRule) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *AlertRule) GetMetricName() string {
+	if x != nil {
+		return x.MetricName
+	}
+	return ""
+}
+
+func (x *AlertRule) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+func (x *AlertRule) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type CreateRuleRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	MetricName    string                 `protobuf:"bytes,2,opt,name=metric_name,json=metricName,proto3" json:"metric_name,omitempty"`
+	Threshold     float64                `protobuf:"fixed64,3,opt,name=threshold,proto3" json:"threshold,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateRuleRequest) Reset() {
+	*x = CreateRuleRequest{}
+	mi := &file_proto_monitoring_proto_msgTypes[12]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateRuleRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateRuleRequest) ProtoMessage() {}
+
+func (x *CreateRuleRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[12]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateRuleRequest.ProtoReflect.Descriptor instead.
+func (*CreateRuleRequest) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *CreateRuleRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+func (x *CreateRuleRequest) GetMetricName() string {
+	if x != nil {
+		return x.MetricName
+	}
+	return ""
+}
+
+func (x *CreateRuleRequest) GetThreshold() float64 {
+	if x != nil {
+		return x.Threshold
+	}
+	return 0
+}
+
+type CreateRuleResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	RuleId        int64                  `protobuf:"varint,1,opt,name=rule_id,json=ruleId,proto3" json:"rule_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *CreateRuleResponse) Reset() {
+	*x = CreateRuleResponse{}
+	mi := &file_proto_monitoring_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *CreateRuleResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*CreateRuleResponse) ProtoMessage() {}
+
+func (x *CreateRuleResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use CreateRuleResponse.ProtoReflect.Descriptor instead.
+func (*CreateRuleResponse) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *CreateRuleResponse) GetRuleId() int64 {
+	if x != nil {
+		return x.RuleId
+	}
+	return 0
+}
+
+type GetRulesRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        int64                  `protobuf:"varint,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRulesRequest) Reset() {
+	*x = GetRulesRequest{}
+	mi := &file_proto_monitoring_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRulesRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRulesRequest) ProtoMessage() {}
+
+func (x *GetRulesRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRulesRequest.ProtoReflect.Descriptor instead.
+func (*GetRulesRequest) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *GetRulesRequest) GetUserId() int64 {
+	if x != nil {
+		return x.UserId
+	}
+	return 0
+}
+
+type GetRulesResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Rules         []*AlertRule           `protobuf:"bytes,1,rep,name=rules,proto3" json:"rules,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *GetRulesResponse) Reset() {
+	*x = GetRulesResponse{}
+	mi := &file_proto_monitoring_proto_msgTypes[15]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *GetRulesResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GetRulesResponse) ProtoMessage() {}
+
+func (x *GetRulesResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_proto_monitoring_proto_msgTypes[15]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GetRulesResponse.ProtoReflect.Descriptor instead.
+func (*GetRulesResponse) Descriptor() ([]byte, []int) {
+	return file_proto_monitoring_proto_rawDescGZIP(), []int{15}
+}
+
+func (x *GetRulesResponse) GetRules() []*AlertRule {
+	if x != nil {
+		return x.Rules
+	}
+	return nil
+}
+
 var File_proto_monitoring_proto protoreflect.FileDescriptor
 
 const file_proto_monitoring_proto_rawDesc = "" +
@@ -379,21 +847,55 @@ const file_proto_monitoring_proto_rawDesc = "" +
 	"\n" +
 	"TimeSeries\x12*\n" +
 	"\x06metric\x18\x01 \x01(\v2\x12.monitoring.MetricR\x06metric\x12,\n" +
-	"\asamples\x18\x02 \x03(\v2\x12.monitoring.SampleR\asamples\";\n" +
+	"\asamples\x18\x02 \x03(\v2\x12.monitoring.SampleR\asamples\"T\n" +
 	"\rUploadRequest\x12*\n" +
-	"\x04list\x18\x01 \x03(\v2\x16.monitoring.TimeSeriesR\x04list\"I\n" +
+	"\x04list\x18\x01 \x03(\v2\x16.monitoring.TimeSeriesR\x04list\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"I\n" +
 	"\x0eUploadResponse\x12!\n" +
 	"\fstored_count\x18\x01 \x01(\x05R\vstoredCount\x12\x14\n" +
-	"\x05error\x18\x02 \x01(\tR\x05error\"2\n" +
+	"\x05error\x18\x02 \x01(\tR\x05error\"K\n" +
 	"\x11GetMetricsRequest\x12\x1d\n" +
 	"\n" +
-	"match_name\x18\x01 \x01(\tR\tmatchName\"@\n" +
+	"match_name\x18\x01 \x01(\tR\tmatchName\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\"@\n" +
 	"\x12GetMetricsResponse\x12*\n" +
-	"\x04list\x18\x01 \x03(\v2\x16.monitoring.TimeSeriesR\x04list2\xa8\x01\n" +
+	"\x04list\x18\x01 \x03(\v2\x16.monitoring.TimeSeriesR\x04list\"+\n" +
+	"\x10VerifyKeyRequest\x12\x17\n" +
+	"\aapi_key\x18\x01 \x01(\tR\x06apiKey\"B\n" +
+	"\x11VerifyKeyResponse\x12\x14\n" +
+	"\x05valid\x18\x01 \x01(\bR\x05valid\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\x03R\x06userId\")\n" +
+	"\x11CreateUserRequest\x12\x14\n" +
+	"\x05email\x18\x01 \x01(\tR\x05email\"\\\n" +
+	"\x12CreateUserResponse\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x17\n" +
+	"\aapi_key\x18\x02 \x01(\tR\x06apiKey\x12\x14\n" +
+	"\x05error\x18\x03 \x01(\tR\x05error\"c\n" +
+	"\tAlertRule\x12\x1f\n" +
+	"\vmetric_name\x18\x01 \x01(\tR\n" +
+	"metricName\x12\x1c\n" +
+	"\tthreshold\x18\x02 \x01(\x01R\tthreshold\x12\x17\n" +
+	"\auser_id\x18\x03 \x01(\x03R\x06userId\"k\n" +
+	"\x11CreateRuleRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\x12\x1f\n" +
+	"\vmetric_name\x18\x02 \x01(\tR\n" +
+	"metricName\x12\x1c\n" +
+	"\tthreshold\x18\x03 \x01(\x01R\tthreshold\"-\n" +
+	"\x12CreateRuleResponse\x12\x17\n" +
+	"\arule_id\x18\x01 \x01(\x03R\x06ruleId\"*\n" +
+	"\x0fGetRulesRequest\x12\x17\n" +
+	"\auser_id\x18\x01 \x01(\x03R\x06userId\"?\n" +
+	"\x10GetRulesResponse\x12+\n" +
+	"\x05rules\x18\x01 \x03(\v2\x15.monitoring.AlertRuleR\x05rules2\xdd\x03\n" +
 	"\x11MonitoringService\x12F\n" +
 	"\rUploadSamples\x12\x19.monitoring.UploadRequest\x1a\x1a.monitoring.UploadResponse\x12K\n" +
 	"\n" +
-	"GetMetrics\x12\x1d.monitoring.GetMetricsRequest\x1a\x1e.monitoring.GetMetricsResponseB\fZ\n" +
+	"GetMetrics\x12\x1d.monitoring.GetMetricsRequest\x1a\x1e.monitoring.GetMetricsResponse\x12H\n" +
+	"\tVerifyKey\x12\x1c.monitoring.VerifyKeyRequest\x1a\x1d.monitoring.VerifyKeyResponse\x12K\n" +
+	"\n" +
+	"CreateUser\x12\x1d.monitoring.CreateUserRequest\x1a\x1e.monitoring.CreateUserResponse\x12P\n" +
+	"\x0fCreateAlertRule\x12\x1d.monitoring.CreateRuleRequest\x1a\x1e.monitoring.CreateRuleResponse\x12J\n" +
+	"\rGetAlertRules\x12\x1b.monitoring.GetRulesRequest\x1a\x1c.monitoring.GetRulesResponseB\fZ\n" +
 	"pmts/protob\x06proto3"
 
 var (
@@ -408,7 +910,7 @@ func file_proto_monitoring_proto_rawDescGZIP() []byte {
 	return file_proto_monitoring_proto_rawDescData
 }
 
-var file_proto_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_proto_monitoring_proto_msgTypes = make([]protoimpl.MessageInfo, 17)
 var file_proto_monitoring_proto_goTypes = []any{
 	(*Metric)(nil),             // 0: monitoring.Metric
 	(*Sample)(nil),             // 1: monitoring.Sample
@@ -417,23 +919,41 @@ var file_proto_monitoring_proto_goTypes = []any{
 	(*UploadResponse)(nil),     // 4: monitoring.UploadResponse
 	(*GetMetricsRequest)(nil),  // 5: monitoring.GetMetricsRequest
 	(*GetMetricsResponse)(nil), // 6: monitoring.GetMetricsResponse
-	nil,                        // 7: monitoring.Metric.LabelsEntry
+	(*VerifyKeyRequest)(nil),   // 7: monitoring.VerifyKeyRequest
+	(*VerifyKeyResponse)(nil),  // 8: monitoring.VerifyKeyResponse
+	(*CreateUserRequest)(nil),  // 9: monitoring.CreateUserRequest
+	(*CreateUserResponse)(nil), // 10: monitoring.CreateUserResponse
+	(*AlertRule)(nil),          // 11: monitoring.AlertRule
+	(*CreateRuleRequest)(nil),  // 12: monitoring.CreateRuleRequest
+	(*CreateRuleResponse)(nil), // 13: monitoring.CreateRuleResponse
+	(*GetRulesRequest)(nil),    // 14: monitoring.GetRulesRequest
+	(*GetRulesResponse)(nil),   // 15: monitoring.GetRulesResponse
+	nil,                        // 16: monitoring.Metric.LabelsEntry
 }
 var file_proto_monitoring_proto_depIdxs = []int32{
-	7, // 0: monitoring.Metric.labels:type_name -> monitoring.Metric.LabelsEntry
-	0, // 1: monitoring.TimeSeries.metric:type_name -> monitoring.Metric
-	1, // 2: monitoring.TimeSeries.samples:type_name -> monitoring.Sample
-	2, // 3: monitoring.UploadRequest.list:type_name -> monitoring.TimeSeries
-	2, // 4: monitoring.GetMetricsResponse.list:type_name -> monitoring.TimeSeries
-	3, // 5: monitoring.MonitoringService.UploadSamples:input_type -> monitoring.UploadRequest
-	5, // 6: monitoring.MonitoringService.GetMetrics:input_type -> monitoring.GetMetricsRequest
-	4, // 7: monitoring.MonitoringService.UploadSamples:output_type -> monitoring.UploadResponse
-	6, // 8: monitoring.MonitoringService.GetMetrics:output_type -> monitoring.GetMetricsResponse
-	7, // [7:9] is the sub-list for method output_type
-	5, // [5:7] is the sub-list for method input_type
-	5, // [5:5] is the sub-list for extension type_name
-	5, // [5:5] is the sub-list for extension extendee
-	0, // [0:5] is the sub-list for field type_name
+	16, // 0: monitoring.Metric.labels:type_name -> monitoring.Metric.LabelsEntry
+	0,  // 1: monitoring.TimeSeries.metric:type_name -> monitoring.Metric
+	1,  // 2: monitoring.TimeSeries.samples:type_name -> monitoring.Sample
+	2,  // 3: monitoring.UploadRequest.list:type_name -> monitoring.TimeSeries
+	2,  // 4: monitoring.GetMetricsResponse.list:type_name -> monitoring.TimeSeries
+	11, // 5: monitoring.GetRulesResponse.rules:type_name -> monitoring.AlertRule
+	3,  // 6: monitoring.MonitoringService.UploadSamples:input_type -> monitoring.UploadRequest
+	5,  // 7: monitoring.MonitoringService.GetMetrics:input_type -> monitoring.GetMetricsRequest
+	7,  // 8: monitoring.MonitoringService.VerifyKey:input_type -> monitoring.VerifyKeyRequest
+	9,  // 9: monitoring.MonitoringService.CreateUser:input_type -> monitoring.CreateUserRequest
+	12, // 10: monitoring.MonitoringService.CreateAlertRule:input_type -> monitoring.CreateRuleRequest
+	14, // 11: monitoring.MonitoringService.GetAlertRules:input_type -> monitoring.GetRulesRequest
+	4,  // 12: monitoring.MonitoringService.UploadSamples:output_type -> monitoring.UploadResponse
+	6,  // 13: monitoring.MonitoringService.GetMetrics:output_type -> monitoring.GetMetricsResponse
+	8,  // 14: monitoring.MonitoringService.VerifyKey:output_type -> monitoring.VerifyKeyResponse
+	10, // 15: monitoring.MonitoringService.CreateUser:output_type -> monitoring.CreateUserResponse
+	13, // 16: monitoring.MonitoringService.CreateAlertRule:output_type -> monitoring.CreateRuleResponse
+	15, // 17: monitoring.MonitoringService.GetAlertRules:output_type -> monitoring.GetRulesResponse
+	12, // [12:18] is the sub-list for method output_type
+	6,  // [6:12] is the sub-list for method input_type
+	6,  // [6:6] is the sub-list for extension type_name
+	6,  // [6:6] is the sub-list for extension extendee
+	0,  // [0:6] is the sub-list for field type_name
 }
 
 func init() { file_proto_monitoring_proto_init() }
@@ -447,7 +967,7 @@ func file_proto_monitoring_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_monitoring_proto_rawDesc), len(file_proto_monitoring_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   17,
 			NumExtensions: 0,
 			NumServices:   1,
 		},

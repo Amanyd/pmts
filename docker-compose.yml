@@ -50,8 +50,10 @@ services:
     build: .
     command: /app/alert
     environment:
+      - STORAGE_ADDR=storage-service:50051
       - NATS_ADDR=nats://nats:4222
     depends_on:
+      - storage-service
       - nats
   
   api-gateway:
@@ -65,6 +67,14 @@ services:
     depends_on:
       - storage-service
       - nats
+  
+  tunnel:
+    image: cloudflare/cloudflared:latest
+    container_name: datacat-tunnel
+    restart: unless-stopped
+    command: tunnel run
+    environment:
+      - TUNNEL_TOKEN=eyJhIjoi...  
 
 volumes:
   postgres_data:

@@ -66,6 +66,8 @@ func main() {
 	mux.HandleFunc("/api/metrics", gw.handleGetMetrics)
 	mux.HandleFunc("/metrics/demo", gw.handleDemoMetrics)
 	mux.HandleFunc("/api/ingest", gw.handleIngest)
+	mux.HandleFunc("/api/register", gw.handleRegister)
+	mux.HandleFunc("/api/rules", gw.handleRules)
 
 	c := cors.New(cors.Options{
 		AllowedOrigins:   []string{"http://localhost:5173", "https://datacat.com"},
@@ -91,8 +93,18 @@ func (g *Gateway) handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	key := r.Header.Get("X-API-key")
-	if key != "sk_live_12345" {
-		http.Error(w, "Unauthorized access...", http.StatusUnauthorized)
+	if key == "" {
+		http.Error(w, "Missing API key", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 2*time.Second)
+	defer cancel()
+
+	verifyResp, err := g.client.VerifyKey(ctx, &pb.VerifyKeyRequest{ApiKey: key})
+	if err != nil || !verifyResp.Valid {
+		slog.Warn("Invalid API Key attempt", "key", key)
+		http.Error(w, "Invalid API Key", http.StatusUnauthorized)
 		return
 	}
 
@@ -109,6 +121,7 @@ func (g *Gateway) handleIngest(w http.ResponseWriter, r *http.Request) {
 	}
 
 	pbReq := &pb.UploadRequest{
+		UserId: verifyResp.UserId,
 		List: []*pb.TimeSeries{
 			{
 				Metric: &pb.Metric{
@@ -142,10 +155,27 @@ func (g *Gateway) handleIngest(w http.ResponseWriter, r *http.Request) {
 }
 
 func (g *Gateway) handleGetMetrics(w http.ResponseWriter, r *http.Request) {
-	req := &pb.GetMetricsRequest{MatchName: ""}
+
+	key := r.Header.Get("X-API-Key")
+	if key == "" {
+		http.Error(w, "Missing API Key", http.StatusUnauthorized)
+		return
+	}
 
 	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
 	defer cancel()
+
+	verifyResp, err := g.client.VerifyKey(ctx, &pb.VerifyKeyRequest{ApiKey: key})
+	if err != nil || !verifyResp.Valid {
+		slog.Warn("Invalid API Key attempt", "key", key)
+		http.Error(w, "Invalid API Key", http.StatusUnauthorized)
+		return
+	}
+
+	req := &pb.GetMetricsRequest{
+		MatchName: "",
+		UserId:    verifyResp.UserId,
+	}
 
 	resp, err := g.client.GetMetrics(ctx, req)
 	if err != nil {
@@ -180,27 +210,87 @@ func (g *Gateway) handleGetMetrics(w http.ResponseWriter, r *http.Request) {
 
 func (g *Gateway) handleDemoMetrics(w http.ResponseWriter, r *http.Request) {
 	val := rand.Float64() * 100
-	w.Write([]byte("# HELP cpu_usage Simulated CPU usage\n"))
-	fmt.Fprintf(w, "cpu_usage_demo %f\n", val)
-	w.Write([]byte("memory_usage_demo 1024\n"))
+	w.Write([]byte("# HELP platform_go_cpu Simulated CPU usage\n"))
+	fmt.Fprintf(w, "platform_go_cpu %f\n", val)
 }
 
-func transformToJSON(resp *pb.GetMetricsResponse) interface{} {
-	type Sample struct {
-		T int64   `json:"t"`
-		V float64 `json:"v"`
+func (g *Gateway) handleRegister(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+		return
 	}
-	type Metric struct {
-		Name    string   `json:"name"`
-		Samples []Sample `json:"samples"`
+
+	type RegisterRequest struct {
+		Email string `json:"email"`
 	}
-	var out []Metric
-	for _, ts := range resp.List {
-		m := Metric{Name: ts.Metric.Name}
-		for _, s := range ts.Samples {
-			m.Samples = append(m.Samples, Sample{T: s.Timestamp, V: s.Value})
+	var req RegisterRequest
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		http.Error(w, "Bad JSON", http.StatusBadRequest)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	rpcResp, err := g.client.CreateUser(ctx, &pb.CreateUserRequest{Email: req.Email})
+	if err != nil {
+		http.Error(w, "RPC Failed", http.StatusInternalServerError)
+		return
+	}
+
+	if rpcResp.Error != "" {
+		http.Error(w, rpcResp.Error, http.StatusConflict)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	json.NewEncoder(w).Encode(map[string]string{
+		"api_key": rpcResp.ApiKey,
+		"user_id": fmt.Sprintf("%d", rpcResp.UserId),
+	})
+}
+func (g *Gateway) handleRules(w http.ResponseWriter, r *http.Request) {
+	key := r.Header.Get("X-API-Key")
+	if key == "" {
+		http.Error(w, "Missing Key", http.StatusUnauthorized)
+		return
+	}
+
+	ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+	defer cancel()
+
+	verifyResp, err := g.client.VerifyKey(ctx, &pb.VerifyKeyRequest{ApiKey: key})
+	if err != nil || !verifyResp.Valid {
+		http.Error(w, "Invalid Key", http.StatusUnauthorized)
+		return
+	}
+
+	if r.Method == http.MethodPost {
+		type RulePayload struct {
+			Metric    string  `json:"metric"`
+			Threshold float64 `json:"threshold"`
 		}
-		out = append(out, m)
+		var payload RulePayload
+		if err := json.NewDecoder(r.Body).Decode(&payload); err != nil {
+			http.Error(w, "Bad JSON", http.StatusBadRequest)
+			return
+		}
+
+		_, err := g.client.CreateAlertRule(ctx, &pb.CreateRuleRequest{
+			UserId:     verifyResp.UserId,
+			MetricName: payload.Metric,
+			Threshold:  payload.Threshold,
+		})
+		if err != nil {
+			slog.Error("Failed to create rule", "err", err)
+			http.Error(w, "Internal Error", http.StatusInternalServerError)
+			return
+		}
+
+		w.WriteHeader(http.StatusCreated)
+		w.Write([]byte("Rule Created"))
+		return
 	}
-	return out
+
+	http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
 }

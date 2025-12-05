@@ -19,8 +19,12 @@ import (
 const _ = grpc.SupportPackageIsVersion9
 
 const (
-	MonitoringService_UploadSamples_FullMethodName = "/monitoring.MonitoringService/UploadSamples"
-	MonitoringService_GetMetrics_FullMethodName    = "/monitoring.MonitoringService/GetMetrics"
+	MonitoringService_UploadSamples_FullMethodName   = "/monitoring.MonitoringService/UploadSamples"
+	MonitoringService_GetMetrics_FullMethodName      = "/monitoring.MonitoringService/GetMetrics"
+	MonitoringService_VerifyKey_FullMethodName       = "/monitoring.MonitoringService/VerifyKey"
+	MonitoringService_CreateUser_FullMethodName      = "/monitoring.MonitoringService/CreateUser"
+	MonitoringService_CreateAlertRule_FullMethodName = "/monitoring.MonitoringService/CreateAlertRule"
+	MonitoringService_GetAlertRules_FullMethodName   = "/monitoring.MonitoringService/GetAlertRules"
 )
 
 // MonitoringServiceClient is the client API for MonitoringService service.
@@ -29,6 +33,10 @@ const (
 type MonitoringServiceClient interface {
 	UploadSamples(ctx context.Context, in *UploadRequest, opts ...grpc.CallOption) (*UploadResponse, error)
 	GetMetrics(ctx context.Context, in *GetMetricsRequest, opts ...grpc.CallOption) (*GetMetricsResponse, error)
+	VerifyKey(ctx context.Context, in *VerifyKeyRequest, opts ...grpc.CallOption) (*VerifyKeyResponse, error)
+	CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error)
+	CreateAlertRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*CreateRuleResponse, error)
+	GetAlertRules(ctx context.Context, in *GetRulesRequest, opts ...grpc.CallOption) (*GetRulesResponse, error)
 }
 
 type monitoringServiceClient struct {
@@ -59,12 +67,56 @@ func (c *monitoringServiceClient) GetMetrics(ctx context.Context, in *GetMetrics
 	return out, nil
 }
 
+func (c *monitoringServiceClient) VerifyKey(ctx context.Context, in *VerifyKeyRequest, opts ...grpc.CallOption) (*VerifyKeyResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(VerifyKeyResponse)
+	err := c.cc.Invoke(ctx, MonitoringService_VerifyKey_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitoringServiceClient) CreateUser(ctx context.Context, in *CreateUserRequest, opts ...grpc.CallOption) (*CreateUserResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateUserResponse)
+	err := c.cc.Invoke(ctx, MonitoringService_CreateUser_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitoringServiceClient) CreateAlertRule(ctx context.Context, in *CreateRuleRequest, opts ...grpc.CallOption) (*CreateRuleResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(CreateRuleResponse)
+	err := c.cc.Invoke(ctx, MonitoringService_CreateAlertRule_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *monitoringServiceClient) GetAlertRules(ctx context.Context, in *GetRulesRequest, opts ...grpc.CallOption) (*GetRulesResponse, error) {
+	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
+	out := new(GetRulesResponse)
+	err := c.cc.Invoke(ctx, MonitoringService_GetAlertRules_FullMethodName, in, out, cOpts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // MonitoringServiceServer is the server API for MonitoringService service.
 // All implementations must embed UnimplementedMonitoringServiceServer
 // for forward compatibility.
 type MonitoringServiceServer interface {
 	UploadSamples(context.Context, *UploadRequest) (*UploadResponse, error)
 	GetMetrics(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error)
+	VerifyKey(context.Context, *VerifyKeyRequest) (*VerifyKeyResponse, error)
+	CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error)
+	CreateAlertRule(context.Context, *CreateRuleRequest) (*CreateRuleResponse, error)
+	GetAlertRules(context.Context, *GetRulesRequest) (*GetRulesResponse, error)
 	mustEmbedUnimplementedMonitoringServiceServer()
 }
 
@@ -80,6 +132,18 @@ func (UnimplementedMonitoringServiceServer) UploadSamples(context.Context, *Uplo
 }
 func (UnimplementedMonitoringServiceServer) GetMetrics(context.Context, *GetMetricsRequest) (*GetMetricsResponse, error) {
 	return nil, status.Error(codes.Unimplemented, "method GetMetrics not implemented")
+}
+func (UnimplementedMonitoringServiceServer) VerifyKey(context.Context, *VerifyKeyRequest) (*VerifyKeyResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method VerifyKey not implemented")
+}
+func (UnimplementedMonitoringServiceServer) CreateUser(context.Context, *CreateUserRequest) (*CreateUserResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateUser not implemented")
+}
+func (UnimplementedMonitoringServiceServer) CreateAlertRule(context.Context, *CreateRuleRequest) (*CreateRuleResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method CreateAlertRule not implemented")
+}
+func (UnimplementedMonitoringServiceServer) GetAlertRules(context.Context, *GetRulesRequest) (*GetRulesResponse, error) {
+	return nil, status.Error(codes.Unimplemented, "method GetAlertRules not implemented")
 }
 func (UnimplementedMonitoringServiceServer) mustEmbedUnimplementedMonitoringServiceServer() {}
 func (UnimplementedMonitoringServiceServer) testEmbeddedByValue()                           {}
@@ -138,6 +202,78 @@ func _MonitoringService_GetMetrics_Handler(srv interface{}, ctx context.Context,
 	return interceptor(ctx, in, info, handler)
 }
 
+func _MonitoringService_VerifyKey_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(VerifyKeyRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitoringServiceServer).VerifyKey(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitoringService_VerifyKey_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitoringServiceServer).VerifyKey(ctx, req.(*VerifyKeyRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MonitoringService_CreateUser_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateUserRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitoringServiceServer).CreateUser(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitoringService_CreateUser_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitoringServiceServer).CreateUser(ctx, req.(*CreateUserRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MonitoringService_CreateAlertRule_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(CreateRuleRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitoringServiceServer).CreateAlertRule(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitoringService_CreateAlertRule_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitoringServiceServer).CreateAlertRule(ctx, req.(*CreateRuleRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MonitoringService_GetAlertRules_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetRulesRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MonitoringServiceServer).GetAlertRules(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MonitoringService_GetAlertRules_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MonitoringServiceServer).GetAlertRules(ctx, req.(*GetRulesRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // MonitoringService_ServiceDesc is the grpc.ServiceDesc for MonitoringService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -152,6 +288,22 @@ var MonitoringService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "GetMetrics",
 			Handler:    _MonitoringService_GetMetrics_Handler,
+		},
+		{
+			MethodName: "VerifyKey",
+			Handler:    _MonitoringService_VerifyKey_Handler,
+		},
+		{
+			MethodName: "CreateUser",
+			Handler:    _MonitoringService_CreateUser_Handler,
+		},
+		{
+			MethodName: "CreateAlertRule",
+			Handler:    _MonitoringService_CreateAlertRule_Handler,
+		},
+		{
+			MethodName: "GetAlertRules",
+			Handler:    _MonitoringService_GetAlertRules_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
