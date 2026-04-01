@@ -20,6 +20,7 @@ sk_*
 
 # Agent Specific
 SKILL.md
+*.tgz
 
 # System / IDE
 .DS_Store
