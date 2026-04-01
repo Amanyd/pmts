@@ -39,11 +39,12 @@
 			For any Linux or macOS server. Runs in the background, reports system metrics every 5 seconds.
 		</p>
 
-		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">install</p>
-		<pre style="margin-bottom: 20px;">curl -sfL https://datacat.com/install.sh | DATACAT_KEY={key} sh -</pre>
+		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">run via docker (recommended)</p>
+		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent -e API_KEY={key} datacat/agent:latest</pre>
 
-		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">or run directly</p>
-		<pre style="margin-bottom: 20px;">./datacat-agent --key={key} --ingest=https://api.datacat.com/api/ingest</pre>
+		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">or build and run natively</p>
+		<pre style="margin-bottom: 20px;">go build -o agent ./cmd/agent/
+./agent --key={key} --ingest=http://your-server-ip:8080/api/ingest</pre>
 
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">What gets reported automatically:</p>
 		<ul style="color: var(--muted); font-size: 13px; margin-left: 20px; margin-bottom: 24px; line-height: 2;">
