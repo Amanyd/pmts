@@ -1,0 +1,4 @@
+node_modules/
+packages/datacat-node/node_modules/
+web/node_modules/
+SKILL.md

@@ -1,0 +1,39 @@
+{
+  "name": "@datacat/node",
+  "version": "0.1.0",
+  "description": "DataCat SDK for Node.js — push custom metrics from any server or serverless function",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./next": {
+      "import": "./dist/next.js",
+      "types": "./dist/next.d.ts"
+    },
+    "./express": {
+      "import": "./dist/express.js",
+      "types": "./dist/express.d.ts"
+    }
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch"
+  },
+  "peerDependencies": {
+    "@types/express": ">=4.0.0",
+    "express": ">=4.0.0"
+  },
+  "peerDependenciesOptional": {
+    "@types/express": true,
+    "express": true
+  },
+  "devDependencies": {
+    "typescript": "^5.4.0"
+  },
+  "keywords": ["monitoring", "metrics", "datacat", "observability", "serverless"],
+  "license": "MIT"
+}

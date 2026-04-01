@@ -37,15 +37,6 @@ services:
       nats:
         condition: service_started
 
-  scraper-service:
-    build: .
-    command: /app/scraper
-    environment:
-      - NATS_ADDR=nats://nats:4222
-      - InDocker=true
-    depends_on:
-      - nats
-
   alert-service:
     build: .
     command: /app/alert
@@ -68,13 +59,6 @@ services:
       - storage-service
       - nats
   
-  tunnel:
-    image: cloudflare/cloudflared:latest
-    container_name: datacat-tunnel
-    restart: unless-stopped
-    command: tunnel run
-    environment:
-      - TUNNEL_TOKEN=eyJhIjoi...  
 
 volumes:
   postgres_data:

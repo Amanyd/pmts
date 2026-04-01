@@ -1,242 +1,133 @@
 <script lang="ts">
-    import { onMount } from 'svelte';
+	import { onMount } from 'svelte';
+	import { goto } from '$app/navigation';
+	import { register } from '$lib/api';
+	import { saveKey, getStoredKey } from '$lib/auth';
 
-    let isSignupMode = $state(false);
-    let email = $state("");
-    let generatedKey = $state("");
-    
-    let apiKey = $state("");
-    let isLoggedIn = $state(false);
-    let errorMsg = $state("");
-    let metrics = $state<any[]>([]); 
-    let availableMetrics = $state<string[]>([]);
-    let selectedMetric = $state("");
-    let currentValue = $state(0);
-    let isConnected = $state(false);
+	let mode = $state<'login' | 'signup'>('login');
+	let email = $state('');
+	let apiKey = $state('');
+	let error = $state('');
+	let generatedKey = $state('');
+	let loading = $state(false);
 
-    async function register() {
-        if (!email.includes("@")) {
-            errorMsg = "Please enter a valid email address.";
-            return;
-        }
+	onMount(() => {
+		if (getStoredKey()) goto('/dashboard');
+	});
 
-        errorMsg = "";
-        generatedKey = "Processing...";
+	async function handleSignup() {
+		error = '';
+		if (!email.includes('@')) { error = 'Enter a valid email.'; return; }
+		loading = true;
+		try {
+			const data = await register(email);
+			generatedKey = data.api_key;
+		} catch (e: any) {
+			error = e.message ?? 'Signup failed.';
+		} finally {
+			loading = false;
+		}
+	}
 
-        try {
-            const res = await fetch('/api/register', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: email })
-            });
+	function handleLogin() {
+		error = '';
+		if (!apiKey.startsWith('sk_')) { error = 'Key must start with sk_'; return; }
+		saveKey(apiKey);
+		goto('/dashboard');
+	}
 
-            const data = await res.json();
-            
-            if (res.status !== 200) {
-                generatedKey = "";
-                errorMsg = data.error || "Signup failed (Email may exist).";
-                return;
-            }
-
-            generatedKey = data.api_key;
-            errorMsg = "";
-
-        } catch (e) {
-            generatedKey = "";
-            errorMsg = "Network error. Is the backend running?";
-        }
-    }
-
-    function login() {
-        if (!apiKey.startsWith("sk_")) {
-            errorMsg = "Invalid Key Format (must start with sk_)";
-            return;
-        }
-        localStorage.setItem("datacat_key", apiKey);
-        isLoggedIn = true;
-        fetchMetrics();
-    }
-
-    function logout() {
-        localStorage.removeItem("datacat_key");
-        isLoggedIn = false;
-        apiKey = "";
-        generatedKey = "";
-    }
-
-    async function fetchMetrics() {
-        if (!isLoggedIn) return;
-
-        try {
-            const res = await fetch('/api/metrics', {
-                headers: { 'X-API-Key': apiKey }
-            });
-            
-            if (res.status === 401) {
-                errorMsg = "Invalid API Key";
-                isLoggedIn = false;
-                return;
-            }
-            if (!res.ok) throw new Error("API Error");
-            
-            const data = await res.json();
-            isConnected = true;
-            errorMsg = "";
-
-            const newMetrics = [...new Set<string>(data.map((m: any) => m.name))].sort();
-            const currentSelection = selectedMetric;
-            
-            if (JSON.stringify(newMetrics) !== JSON.stringify(availableMetrics)) {
-                availableMetrics = newMetrics;
-            }
-            if (!currentSelection && availableMetrics.length > 0) {
-                selectedMetric = availableMetrics[0];
-            } else if (currentSelection && availableMetrics.includes(currentSelection)) {
-                selectedMetric = currentSelection;
-            }
-            const selectedData = data.find((m: any) => m.name === selectedMetric);
-            if (selectedData && selectedData.samples.length > 0) {
-                const lastSample = selectedData.samples[selectedData.samples.length - 1];
-                currentValue = lastSample.v;
-                metrics = selectedData.samples;
-            }
-
-        } catch (err) {
-            isConnected = false;
-        }
-    }
-
-    onMount(() => {
-        const savedKey = localStorage.getItem("datacat_key");
-        if (savedKey) {
-            apiKey = savedKey;
-            isLoggedIn = true;
-            fetchMetrics();
-        }
-
-        const interval = setInterval(fetchMetrics, 2000);
-        return () => clearInterval(interval);
-    });
+	function useGeneratedKey() {
+		saveKey(generatedKey);
+		goto('/dashboard');
+	}
 </script>
 
-<div style="background: #000; color: #fff; min-height: 100vh; padding: 20px; font-family: monospace;">
-    
-    <div style="margin-bottom: 20px;">
-        <a href="/" style="color: #fff; text-decoration: none;">datacat</a>
-        {#if isLoggedIn}
-            <a href="/setrule" style="margin-left: 20px; color: #fff;">[SET RULE]</a>
-            <a href="/docs" style="margin-left: 10px; color: #fff;">[DOCS]</a>
-            <a href="/about" style="margin-left: 10px; color: #fff;">[ABOUT]</a>
-            <button onclick={logout} style="margin-left: 10px; background: none; border: none; color: #fff; cursor: pointer;">[LOGOUT]</button>
-        {/if}
-    </div>
+<svelte:head>
+	<title>DataCat — server monitoring for developers</title>
+</svelte:head>
 
-    <div>Status: {isConnected ? 'CONNECTED' : 'DISCONNECTED'}</div>
+<div class="page" style="max-width: 560px;">
 
-    <hr style="border-color: #fff; margin: 20px 0;">
+	{#if generatedKey}
+		<div style="margin-top: 48px;">
+			<div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.1em; color: var(--muted); margin-bottom: 16px;">
+				account created
+			</div>
+			<p style="margin-bottom: 16px;">Your API key. Save it — this is the only time we show it.</p>
+			<pre style="margin-bottom: 24px; word-break: break-all;">{generatedKey}</pre>
+			<button class="btn btn-fill" onclick={useGeneratedKey}>go to dashboard →</button>
+		</div>
 
-    {#if !isLoggedIn}
-        <div>
-            
-            {#if generatedKey}
-                <div>SUCCESS! Your new API Key:</div>
-                <div style="margin: 10px 0;">{generatedKey}</div>
-                <div>^ SAVE THIS KEY! It is your password.</div>
-                <br>
-                <button 
-                    onclick={() => {isSignupMode = false; apiKey = generatedKey; login();}}
-                    style="background: #fff; color: #000; border: none; padding: 5px 15px; cursor: pointer;"
-                >
-                    Log In Now
-                </button>
+	{:else}
 
-            {:else}
-                <div>{isSignupMode ? 'Get New API Key' : 'Login with API Key'}</div>
-                <br>
+		<div style="margin-top: 48px; margin-bottom: 48px;">
+			<h1 style="font-size: 28px; font-weight: 600; letter-spacing: 0.04em; margin-bottom: 12px;">
+				DataCat
+			</h1>
+			<p style="color: var(--muted); margin-bottom: 8px;">
+				Server and app metrics without the complexity.
+			</p>
+			<p style="color: var(--muted); font-size: 13px;">
+				Drop one binary on your server. Metrics appear within seconds.
+			</p>
+		</div>
 
-                {#if isSignupMode}
-                    <div>Email:</div>
-                    <input 
-                        type="email" 
-                        bind:value={email} 
-                        placeholder="email@example.com" 
-                        style="background: #000; border: 1px solid #fff; color: #fff; padding: 5px; margin: 10px 0; width: 300px;"
-                    />
-                    <br>
-                    <button 
-                        onclick={register}
-                        style="background: #fff; color: #000; border: none; padding: 5px 15px; cursor: pointer;"
-                    >
-                        CREATE NEW KEY
-                    </button>
-                    <br><br>
-                    <button 
-                        onclick={() => isSignupMode = false}
-                        style="background: none; border: none; color: #fff; cursor: pointer;"
-                    >
-                        [I already have a key]
-                    </button>
-                {:else}
-                    <div>API Key:</div>
-                    <input 
-                        type="text" 
-                        bind:value={apiKey} 
-                        placeholder="sk_..." 
-                        style="background: #000; border: 1px solid #fff; color: #fff; padding: 5px; margin: 10px 0; width: 300px;"
-                    />
-                    <br>
-                    <button 
-                        onclick={login}
-                        style="background: #fff; color: #000; border: none; padding: 5px 15px; cursor: pointer;"
-                    >
-                        LOGIN
-                    </button>
-                    <br><br>
-                    <button 
-                        onclick={() => isSignupMode = true}
-                        style="background: none; border: none; color: #fff; cursor: pointer;"
-                    >
-                        [Need an API Key? Sign Up]
-                    </button>
-                {/if}
+		<hr>
 
-                {#if errorMsg}
-                    <div style="margin-top: 10px;">Error: {errorMsg}</div>
-                {/if}
-            {/if}
-        </div>
+		<div style="display: flex; gap: 0; margin-bottom: 24px;">
+			<button
+				class="btn"
+				style="border-right: none;"
+				class:btn-fill={mode === 'login'}
+				onclick={() => mode = 'login'}
+			>login</button>
+			<button
+				class="btn"
+				class:btn-fill={mode === 'signup'}
+				onclick={() => mode = 'signup'}
+			>sign up</button>
+		</div>
 
-    {:else}
-        <div>
-            <div>Select Metric:</div>
-            <select 
-                bind:value={selectedMetric}
-                style="background: #000; border: 1px solid #fff; color: #fff; padding: 5px; margin: 10px 0;"
-            >
-                {#if availableMetrics.length === 0}
-                    <option>Waiting for data...</option>
-                {/if}
-                {#each availableMetrics as m (m)}
-                    <option value={m}>{m}</option>
-                {/each}
-            </select>
+		{#if mode === 'login'}
+			<div class="form-row">
+				<label for="api-key">API Key</label>
+				<input id="api-key" type="text" bind:value={apiKey} placeholder="sk_..." />
+			</div>
+			<button class="btn btn-fill" onclick={handleLogin}>login →</button>
 
-            <div style="margin: 20px 0;">
-                <div>Current Value:</div>
-                <div style="font-size: 32px;">{currentValue.toFixed(4)}</div>
-            </div>
+		{:else}
+			<div class="form-row">
+				<label for="email">Email</label>
+				<input id="email" type="email" bind:value={email} placeholder="you@example.com" />
+			</div>
+			<button class="btn btn-fill" onclick={handleSignup} disabled={loading}>
+				{loading ? 'creating...' : 'create account →'}
+			</button>
+		{/if}
 
-            <hr style="border-color: #fff; margin: 20px 0;">
+		{#if error}
+			<div class="notice err" style="margin-top: 16px;">{error}</div>
+		{/if}
+	{/if}
 
-            <div>Raw Samples (last 20):</div>
-            <pre style="margin-top: 10px;">{#each metrics.slice(-20) as sample}
-t: {sample.t} | v: {sample.v}
-{/each}</pre>
+	<hr>
 
-            {#if metrics.length === 0}
-                <div>No data. Run the agent.</div>
-            {/if}
-        </div>
-    {/if}
-
+	<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 8px;">
+		<div>
+			<div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px;">
+				for servers
+			</div>
+			<p style="font-size: 13px; color: var(--muted);">
+				One binary. Runs on any Linux server. Reports CPU, memory, disk, and network automatically.
+			</p>
+		</div>
+		<div>
+			<div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 6px;">
+				custom metrics
+			</div>
+			<p style="font-size: 13px; color: var(--muted);">
+				Expose a <code>/metrics</code> endpoint from your app. The agent scrapes it automatically.
+			</p>
+		</div>
+	</div>
 </div>
