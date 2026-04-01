@@ -39,12 +39,8 @@
 			For any Linux or macOS server. Runs in the background, reports system metrics every 5 seconds.
 		</p>
 
-		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">run via docker (recommended)</p>
-		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent -e API_KEY={key} datacat/agent:latest</pre>
-
-		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">or build and run natively</p>
-		<pre style="margin-bottom: 20px;">go build -o agent ./cmd/agent/
-./agent --key={key} --ingest=http://your-server-ip:8080/api/ingest</pre>
+		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">run via docker</p>
+		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent -e API_KEY={key} amanyd139/datacat-agent:latest</pre>
 
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">What gets reported automatically:</p>
 		<ul style="color: var(--muted); font-size: 13px; margin-left: 20px; margin-bottom: 24px; line-height: 2;">
@@ -73,8 +69,11 @@ jobs_processed \${getJobCount()}
 \`);
 });`}</pre>
 
-		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">then start the agent with --scrape</p>
-		<pre style="margin-bottom: 24px;">./datacat-agent --key={key} --scrape=http://localhost:3000/metrics</pre>
+		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">start agent with --network host to reach localhost</p>
+		<pre style="margin-bottom: 12px;">docker run -d --name datacat-agent --network host \
+  -e API_KEY={key} amanyd139/datacat-agent:latest \
+  --scrape=http://localhost:3000/metrics</pre>
+		<p style="color: var(--muted); font-size: 12px; margin-bottom: 24px;">Note: If the <code>/metrics</code> server goes down or returns 404, the agent perfectly ignores it and continues sending your hardware stats!</p>
 
 	<!-- Option 2: Node.js SDK -->
 	{:else if tab === 'sdk'}
