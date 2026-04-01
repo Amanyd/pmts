@@ -68,10 +68,10 @@ func main() {
 	mux.HandleFunc("/metrics/demo", gw.handleDemoMetrics)
 
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:5173", "https://datacat.com"},
+		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "DELETE", "OPTIONS"},
 		AllowedHeaders:   []string{"*"},
-		AllowCredentials: true,
+		AllowCredentials: false,
 	})
 
 	srv := &http.Server{

@@ -1,5 +1,5 @@
 {
-  "name": "@datacat-node/core",
+  "name": "@datacat/node",
   "version": "0.1.0",
   "description": "DataCat SDK for Node.js — push custom metrics from any server or serverless function",
   "type": "module",
