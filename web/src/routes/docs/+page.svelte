@@ -4,9 +4,11 @@
 	import { getStoredKey } from '$lib/auth';
 
 	let key = $state('');
+	let host = $state('localhost');
 	let tab = $state<'agent' | 'sdk' | 'http'>('agent');
 
 	onMount(() => {
+		host = window.location.hostname;
 		const k = getStoredKey();
 		if (!k) { goto('/'); return; }
 		key = k;
@@ -40,7 +42,7 @@
 		</p>
 
 		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">run via docker</p>
-		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent -e API_KEY={key} amanyd139/datacat-agent:latest</pre>
+		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent -e API_KEY={key} amanyd139/datacat-agent:latest --ingest=http://{host}:8080/api/ingest</pre>
 
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">What gets reported automatically:</p>
 		<ul style="color: var(--muted); font-size: 13px; margin-left: 20px; margin-bottom: 24px; line-height: 2;">
