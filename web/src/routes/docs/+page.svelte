@@ -42,7 +42,7 @@
 		</p>
 
 		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">run via docker</p>
-		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent -e API_KEY={key} amanyd139/datacat-agent:latest --ingest=http://{host}:8080/api/ingest</pre>
+		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent amanyd139/datacat-agent:latest --key={key} --ingest=http://{host}:8080/api/ingest</pre>
 
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">What gets reported automatically:</p>
 		<ul style="color: var(--muted); font-size: 13px; margin-left: 20px; margin-bottom: 24px; line-height: 2;">
@@ -73,8 +73,8 @@ jobs_processed \${getJobCount()}
 
 		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">start agent with --network host to reach localhost</p>
 		<pre style="margin-bottom: 12px;">docker run -d --name datacat-agent --network host \
-  -e API_KEY={key} amanyd139/datacat-agent:latest \
-  --scrape=http://localhost:3000/metrics</pre>
+  amanyd139/datacat-agent:latest \
+  --key={key} --scrape=http://localhost:3000/metrics</pre>
 		<p style="color: var(--muted); font-size: 12px; margin-bottom: 24px;">Note: If the <code>/metrics</code> server goes down or returns 404, the agent perfectly ignores it and continues sending your hardware stats!</p>
 
 	<!-- Option 2: Node.js SDK -->
