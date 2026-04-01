@@ -1,5 +1,5 @@
 {
-  "name": "@datacat/node",
+  "name": "@datacat-node/core",
   "version": "0.1.0",
   "description": "DataCat SDK for Node.js — push custom metrics from any server or serverless function",
   "type": "module",
@@ -34,6 +34,12 @@
   "devDependencies": {
     "typescript": "^5.4.0"
   },
-  "keywords": ["monitoring", "metrics", "datacat", "observability", "serverless"],
+  "keywords": [
+    "monitoring",
+    "metrics",
+    "datacat",
+    "observability",
+    "serverless"
+  ],
   "license": "MIT"
 }
