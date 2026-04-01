@@ -1,4 +1,29 @@
+# Dependencies
 node_modules/
-packages/datacat-node/node_modules/
-web/node_modules/
+dist/
+build/
+.svelte-kit/
+.vercel/
+
+# Go Binaries (Local Builds)
+agent
+alert-service
+api-gateway
+storage-service
+/bin/
+
+# Environment / Secret
+.env
+*.pem
+*.key
+sk_*
+
+# Agent Specific
 SKILL.md
+
+# System / IDE
+.DS_Store
+.vscode/
+.idea/
+*.swp
+*.log
