@@ -4,7 +4,10 @@ const proxy: RequestHandler = async ({ request, url }) => {
 	// In production (Docker Compose), gateway is reachable at 'http://api-gateway:8080'
 	// In development, it's 'http://localhost:8080'
 	const isProd = process.env.NODE_ENV === 'production';
-	const apiUrl = process.env.API_URL || (isProd ? 'http://api-gateway:8080' : 'http://localhost:8080');
+	let apiUrl = process.env.API_URL || (isProd ? 'http://api-gateway:8080' : 'http://localhost:8080');
+	if (apiUrl && !apiUrl.startsWith('http://') && !apiUrl.startsWith('https://')) {
+		apiUrl = `https://${apiUrl}`;
+	}
 	const backendUrl = `${apiUrl}${url.pathname}${url.search}`;
 
 	// Strip 'host' and 'connection' headers to prevent proxy issues
