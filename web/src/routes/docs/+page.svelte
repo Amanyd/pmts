@@ -87,12 +87,12 @@ jobs_processed \${getJobCount()}
 		</p>
 
 		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">install</p>
-		<pre style="margin-bottom: 24px;">npm install @datacat/node</pre>
+		<pre style="margin-bottom: 24px;">npm install @datacat-node/core</pre>
 
 		<hr>
 		<h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; margin: 24px 0 16px;">basic usage</h3>
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">Works in Express, Fastify, or any long-running Node.js server. Auto-flushes every 5s.</p>
-		<pre style="margin-bottom: 24px;">{`import { DataCat } from '@datacat/node';
+		<pre style="margin-bottom: 24px;">{`import { DataCat } from '@datacat-node/core';
 
 const dc = new DataCat({ apiKey: '${key}', endpoint: '${ingestUrl}' });
 
@@ -110,8 +110,8 @@ process.on('SIGTERM', () => dc.shutdown());`}</pre>
 		<hr>
 		<h3 style="font-size: 13px; text-transform: uppercase; letter-spacing: 0.08em; margin: 24px 0 16px;">express — auto-instrument all routes</h3>
 		<pre style="margin-bottom: 24px;">{`import express from 'express';
-import { DataCat } from '@datacat/node';
-import { expressMiddleware } from '@datacat/node/express';
+import { DataCat } from '@datacat-node/core';
+import { expressMiddleware } from '@datacat-node/core/express';
 
 const dc = new DataCat({ apiKey: '${key}', endpoint: '${ingestUrl}' });
 const app = express();
@@ -131,8 +131,8 @@ process.on('SIGTERM', () => dc.shutdown());`}</pre>
 			<strong>Note:</strong> Since serverless functions don't keep memory alive between requests, you should send database counts if you want an accumulating line chart.
 		</p>
 		<pre style="margin-bottom: 24px;">{`// app/api/checkout/route.ts
-import { DataCat } from '@datacat/node';
-import { wrapHandler } from '@datacat/node/next';
+import { DataCat } from '@datacat-node/core';
+import { wrapHandler } from '@datacat-node/core/next';
 
 // flushInterval: 0 = serverless mode (no background timer)
 const dc = new DataCat({ apiKey: '${key}', endpoint: '${ingestUrl}', flushInterval: 0 });
