@@ -4,11 +4,13 @@
 	import { getStoredKey } from '$lib/auth';
 
 	let key = $state('');
-	let host = $state('localhost');
+	let origin = $state('http://localhost:5173');
 	let tab = $state<'agent' | 'sdk' | 'http'>('agent');
 
+	let ingestUrl = $derived(`${origin}/api/ingest`);
+
 	onMount(() => {
-		host = window.location.hostname;
+		origin = window.location.origin;
 		const k = getStoredKey();
 		if (!k) { goto('/'); return; }
 		key = k;
@@ -42,7 +44,7 @@
 		</p>
 
 		<p style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 4px;">run via docker</p>
-		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent amanyd139/datacat-agent:latest --key={key} --ingest=http://{host}:8080/api/ingest</pre>
+		<pre style="margin-bottom: 20px;">docker run -d --name datacat-agent amanyd139/datacat-agent:latest --key={key} --ingest={ingestUrl}</pre>
 
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">What gets reported automatically:</p>
 		<ul style="color: var(--muted); font-size: 13px; margin-left: 20px; margin-bottom: 24px; line-height: 2;">
@@ -92,7 +94,7 @@ jobs_processed \${getJobCount()}
 		<p style="color: var(--muted); font-size: 13px; margin-bottom: 8px;">Works in Express, Fastify, or any long-running Node.js server. Auto-flushes every 5s.</p>
 		<pre style="margin-bottom: 24px;">{`import { DataCat } from '@datacat/node';
 
-const dc = new DataCat({ apiKey: '${key}', endpoint: \`http://\${host}:8080/api/ingest\` });
+const dc = new DataCat({ apiKey: '${key}', endpoint: '${ingestUrl}' });
 
 // Track cumulative totals for line charts that go UP (Counters)
 let totalSignups = 100;
@@ -111,7 +113,7 @@ process.on('SIGTERM', () => dc.shutdown());`}</pre>
 import { DataCat } from '@datacat/node';
 import { expressMiddleware } from '@datacat/node/express';
 
-const dc = new DataCat({ apiKey: '${key}', endpoint: \`http://\${host}:8080/api/ingest\` });
+const dc = new DataCat({ apiKey: '${key}', endpoint: '${ingestUrl}' });
 const app = express();
 
 // auto-tracks http_requests_total + http_request_duration_ms
@@ -133,7 +135,7 @@ import { DataCat } from '@datacat/node';
 import { wrapHandler } from '@datacat/node/next';
 
 // flushInterval: 0 = serverless mode (no background timer)
-const dc = new DataCat({ apiKey: '${key}', endpoint: \`http://\${host}:8080/api/ingest\`, flushInterval: 0 });
+const dc = new DataCat({ apiKey: '${key}', endpoint: '${ingestUrl}', flushInterval: 0 });
 
 async function handler(request: Request) {
   // Good: Track absolute database counts for charts that go UP
@@ -154,7 +156,7 @@ export const POST = wrapHandler(dc, handler, {
 		<p style="color: var(--muted); margin-bottom: 16px;">
 			POST metrics from any language using the raw ingest endpoint.
 		</p>
-		<pre style="margin-bottom: 24px;">{`curl -X POST http://${host}:8080/api/ingest \\
+		<pre style="margin-bottom: 24px;">{`curl -X POST ${ingestUrl} \\
   -H "X-API-Key: ${key}" \\
   -H "Content-Type: application/json" \\
   -d '[{"name":"my_metric","value":42.0,"timestamp":'$(date +%s)'}]'`}</pre>

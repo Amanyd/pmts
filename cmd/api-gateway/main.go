@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log/slog"
 	"math/rand/v2"
 	"net/http"
@@ -153,12 +154,25 @@ func (g *Gateway) handleIngest(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
+	body, err := io.ReadAll(r.Body)
+	r.Body.Close()
+	if err != nil {
+		http.Error(w, "Failed to read body", http.StatusBadRequest)
+		return
+	}
+
 	var payloads []AgentPayload
-	// Try array first, then single object
-	if err := json.NewDecoder(r.Body).Decode(&payloads); err != nil || len(payloads) == 0 {
-		// Try as single
-		r.Body.Close()
-		http.Error(w, "Bad JSON: expected object or array", http.StatusBadRequest)
+	if err := json.Unmarshal(body, &payloads); err != nil {
+		// Try as single object
+		var single AgentPayload
+		if err := json.Unmarshal(body, &single); err != nil {
+			http.Error(w, "Bad JSON: expected object or array", http.StatusBadRequest)
+			return
+		}
+		payloads = []AgentPayload{single}
+	}
+	if len(payloads) == 0 {
+		http.Error(w, "Empty payload", http.StatusBadRequest)
 		return
 	}
 

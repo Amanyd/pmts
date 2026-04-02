@@ -19,10 +19,18 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
+const alertCooldown = 5 * time.Minute
+
 type RuleCache struct {
 	mu    sync.RWMutex
 	rules map[int64][]*pb.AlertRule
 }
+
+// Tracks last fire time per rule ID to prevent webhook spam
+var (
+	cooldownMu   sync.RWMutex
+	lastFiredAt  = make(map[int64]time.Time)
+)
 
 func (c *RuleCache) Refresh(client pb.MonitoringServiceClient, logger *slog.Logger) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
@@ -113,12 +121,25 @@ func checkRules(list []*pb.TimeSeries, userID int64, cache *RuleCache, logger *s
 					continue
 				}
 				if sample.Value > rule.Threshold {
+					// Dedup: skip if this rule fired within the cooldown window
+					cooldownMu.RLock()
+					last, seen := lastFiredAt[rule.RuleId]
+					cooldownMu.RUnlock()
+					if seen && time.Since(last) < alertCooldown {
+						continue
+					}
+
 					logger.Warn("ALERT FIRED",
 						"user", userID,
 						"metric", rule.MetricName,
 						"value", sample.Value,
 						"threshold", rule.Threshold,
 					)
+
+					cooldownMu.Lock()
+					lastFiredAt[rule.RuleId] = time.Now()
+					cooldownMu.Unlock()
+
 					if rule.WebhookUrl != "" {
 						go sendWebhook(rule, sample.Value, logger)
 					}

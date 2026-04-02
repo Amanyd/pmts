@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { goto } from '$app/navigation';
-	import { register } from '$lib/api';
+	import { register, verifyKey } from '$lib/api';
 	import { saveKey, getStoredKey } from '$lib/auth';
 
 	let mode = $state<'login' | 'signup'>('login');
@@ -29,11 +29,20 @@
 		}
 	}
 
-	function handleLogin() {
+	async function handleLogin() {
 		error = '';
 		if (!apiKey.startsWith('sk_')) { error = 'Key must start with sk_'; return; }
-		saveKey(apiKey);
-		goto('/dashboard');
+		loading = true;
+		try {
+			const valid = await verifyKey(apiKey);
+			if (!valid) { error = 'Invalid API key.'; return; }
+			saveKey(apiKey);
+			goto('/dashboard');
+		} catch (e: any) {
+			error = 'Could not verify key. Try again.';
+		} finally {
+			loading = false;
+		}
 	}
 
 	function useGeneratedKey() {

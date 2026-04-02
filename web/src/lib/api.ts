@@ -53,14 +53,10 @@ export async function register(email: string): Promise<{ api_key: string; user_i
 }
 
 export async function verifyKey(key: string): Promise<boolean> {
-	const r = await fetch('/api/health', {
+	const r = await fetch('/api/metrics/names', {
 		headers: { 'X-API-Key': key }
 	});
-	// Health doesn't require auth, but we can try metrics to verify
-	const r2 = await fetch('/api/metrics/names', {
-		headers: { 'X-API-Key': key }
-	});
-	return r2.ok;
+	return r.ok;
 }
 
 // ── Metrics ───────────────────────────────────────────────────────────────────

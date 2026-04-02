@@ -328,6 +328,31 @@ func startNatsListener(nc *nats.Conn, srv *Server, logger *slog.Logger) {
 	})
 }
 
+func startRetentionWorker(db *sql.DB, logger *slog.Logger) {
+	retentionDays := 30
+	if v := os.Getenv("RETENTION_DAYS"); v != "" {
+		if d, err := strconv.Atoi(v); err == nil && d > 0 {
+			retentionDays = d
+		}
+	}
+
+	ticker := time.NewTicker(1 * time.Hour)
+	go func() {
+		for range ticker.C {
+			cutoff := time.Now().Unix() - int64(retentionDays*86400)
+			result, err := db.Exec("DELETE FROM samples WHERE timestamp < $1", cutoff)
+			if err != nil {
+				logger.Error("Retention cleanup failed", "error", err)
+				continue
+			}
+			rows, _ := result.RowsAffected()
+			if rows > 0 {
+				logger.Info("Retention cleanup", "deleted", rows, "cutoff_days", retentionDays)
+			}
+		}
+	}()
+}
+
 func itoa(n int) string {
 	return strconv.Itoa(n)
 }
@@ -361,6 +386,7 @@ func main() {
 	}
 	defer nc.Close()
 	startNatsListener(nc, srv, logger)
+	startRetentionWorker(db, logger)
 	logger.Info("NATS listener started")
 
 	lis, err := net.Listen("tcp", ":50051")

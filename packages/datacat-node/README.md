@@ -81,7 +81,7 @@ export const POST = wrapHandler(dc, handler, { route: '/api/checkout', method: '
 | Option | Type | Default | Description |
 |---|---|---|---|
 | `apiKey` | `string` | required | Your DataCat API key |
-| `endpoint` | `string` | `https://api.datacat.com/api/ingest` | Custom ingest URL |
+| `endpoint` | `string` | `https://datacat-tau.vercel.app/api/ingest` | Custom ingest URL |
 | `flushInterval` | `number` | `5000` | ms between auto-flushes. Set `0` for serverless. |
 | `maxBatchSize` | `number` | `500` | Force-flush when buffer hits this size |
 
