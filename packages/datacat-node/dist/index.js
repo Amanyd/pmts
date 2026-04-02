@@ -5,7 +5,7 @@ export class DataCat {
         if (!opts.apiKey)
             throw new Error('[DataCat] apiKey is required');
         this.apiKey = opts.apiKey;
-        this.endpoint = opts.endpoint ?? 'https://api.datacat.com/api/ingest';
+        this.endpoint = opts.endpoint ?? 'https://datacat-tau.vercel.app/api/ingest';
         this.maxBatchSize = opts.maxBatchSize ?? 500;
         const interval = opts.flushInterval ?? 5000;
         if (interval > 0) {
